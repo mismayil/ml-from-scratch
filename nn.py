@@ -1,28 +1,5 @@
 import numpy as np
-
-
-def relu(x):
-    return np.maximum(0, x)
-
-
-def relu_derivative(x):
-    return x > 0
-
-
-def softmax(x, axis=1):
-    return np.exp(x) / np.sum(np.exp(x), axis=axis)
-
-
-def cross_entropy(x, target):
-    return (-1/target.shape[0]) * np.sum(target * np.log(x))
-
-
-def tanh(x):
-    return np.tanh(x)
-
-
-def tanh_derivative(x):
-    return 1-np.tanh(x)**2
+from functions import relu, relu_derivative, tanh, tanh_derivative, cross_entropy, softmax
 
 
 class Layer:

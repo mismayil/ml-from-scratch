@@ -1,10 +1,12 @@
 import numpy as np
 from nltk.tokenize import word_tokenize
+import re
 
 
 def tokenize(text):
+    text = re.sub(r'[,!?;-]', '.', text)
     tokens = word_tokenize(text)
-    tokens = [token.lower() for token in tokens if token.isalpha()]
+    tokens = [token.lower() for token in tokens if token.isalpha() or token == '.']
     return tokens
 
 
@@ -49,8 +51,8 @@ def generate_batch_data(tokens, vocab, context_size=2, batch_size=128):
 
     while True:
         batch_tokens = tokens[batches*batch_size:(batches+1)*batch_size]
-        if batch_tokens:
+        if len(batch_tokens) < batch_size:
+            break
+        else:
             yield generate_train_data(batch_tokens, vocab, context_size)
             batches += 1
-        else:
-            break
