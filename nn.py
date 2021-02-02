@@ -1,7 +1,6 @@
 import numpy as np
 from functions import relu, relu_derivative, tanh, tanh_derivative, cross_entropy, softmax
 
-
 class Layer:
     def __init__(self):
         self.input = None
@@ -36,6 +35,8 @@ class Linear(Layer):
 
         return in_error
 
+    def __repr__(self):
+        return f'Linear_{self.in_dim}_{self.out_dim}'
 
 class Activation(Layer):
     def __init__(self, activation):
@@ -60,12 +61,13 @@ class Activation(Layer):
     def backward(self, out_error, learning_rate):
         return self.derivative(self.input) * out_error
 
+    def __repr__(self):
+        return f'Activation_{self.activation_name}'
 
 class Loss(Layer):
     def __init__(self):
         super().__init__()
         self.target = None
-
 
 class CrossEntropyLoss(Loss):
     def __init__(self):
@@ -76,11 +78,14 @@ class CrossEntropyLoss(Loss):
         self.input = X
         self.target = target
         self.softmax_out = softmax(self.input)
-        self.output = cross_entropy(self.softmax_out)
+        self.output = cross_entropy(self.softmax_out, self.target)
         return self.output
 
     def backward(self):
         return (1/self.target.shape[0])*(self.softmax_out - self.target)
+
+    def __repr__(self):
+        return 'CrossEntropyLoss'
 
 
 class MSELoss(Loss):
@@ -89,38 +94,67 @@ class MSELoss(Loss):
         self.target = target
         self.output = np.mean(np.power(target-X, 2))
         return self.output
-
+    
     def backward(self):
         return (2 * (self.input-self.target)) / self.target.shape[0]
 
+    def __repr__(self):
+        return 'MSELoss'
+
 
 class Model:
-    def __init__(self):
+    def __init__(self, name):
+        self.name = name
         self.layers = []
         self.loss = None
-
+    
     def add(self, layer):
         self.layers.append(layer)
-
+    
     def set_loss(self, loss):
         self.loss = loss
-
-    def train(self, X, y, epochs=10, learning_rate=0.05):
+    
+    def train(self, data_generator, epochs=100, learning_rate=0.05, checkpoint=100):
         for i in range(epochs):
-            predictions = self.predict(X)
+            data = data_generator()
+            epoch_loss = 0
 
-            loss = self.loss()
-            cost = loss.forward(predictions, y)
+            for X, y in data:
+                predictions = self.predict(X)
+                
+                loss = self.loss()
+                cost = loss.forward(predictions, y)
+                
+                error = loss.backward()
+                
+                for layer in reversed(self.layers):
+                    error = layer.backward(error, learning_rate)
 
-            error = loss.backward()
+                epoch_loss += cost
+                
+            print(f'epoch={i}, loss={epoch_loss}')
 
-            for layer in reversed(self.layers):
-                error = layer.backward(error, learning_rate)
-
-            print(f'epoch={i}, loss={cost}')
-
+            if i % checkpoint == 0:
+                self.save()
+    
     def predict(self, X):
         output = X
         for layer in self.layers:
             output = layer.forward(output)
         return output
+    
+    def save(self):
+        now = datetime.now()
+        id = now.strftime('%Y%m%d%H%M%S')
+        with open(f'./models/{self.name}-{id}.pkl', 'wb') as f:
+            pickle.dump(self, f)
+
+    @staticmethod
+    def load(model_path):
+        with open(f'./{model_path}', 'rb') as f:
+            return pickle.load(f)
+
+    def summary(self):
+        print(f'Model {self.name}')
+        for layer in self.layers:
+            print(layer)

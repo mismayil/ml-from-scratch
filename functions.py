@@ -30,7 +30,7 @@ def relu_derivative(x):
 
 
 def softmax(x, axis=1):
-    return np.exp(x) / np.sum(np.exp(x), axis=axis)
+    return np.exp(x) / np.sum(np.exp(x), axis=axis, keepdims=True)
 
 
 def cross_entropy(x, target):
@@ -43,3 +43,28 @@ def tanh(x):
 
 def tanh_derivative(x):
     return 1-np.tanh(x)**2
+
+
+def compute_pca(data, n_components=2):
+    m, n = data.shape
+
+    # mean center the data
+    data -= data.mean(axis=0)
+    # calculate the covariance matrix
+    cov_matrix = np.cov(data, rowvar=False)
+    # calculate eigenvectors & eigenvalues of the covariance matrix
+    # use 'eigh' rather than 'eig' since R is symmetric,
+    # the performance gain is substantial
+    evals, evecs = np.linalg.eigh(cov_matrix)
+    # sort eigenvalue in decreasing order
+    # this returns the corresponding indices of evals and evecs
+    idx = np.argsort(evals)[::-1]
+
+    evecs = evecs[:, idx]
+    # sort eigenvectors according to same index
+    evals = evals[idx]
+    # select the first n eigenvectors (n is desired dimension
+    # of rescaled data array, or dims_rescaled_data)
+    evecs = evecs[:, :n_components]
+
+    return np.dot(evecs.T, data.T).T
