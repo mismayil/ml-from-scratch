@@ -1,8 +1,8 @@
 import nltk
 from nltk.corpus import reuters
 
-from nn import Model, Linear, Activation, CrossEntropyLoss
-from word2vec import tokenize, generate_vocab, generate_cbow_batch_data, plot_embeddings
+from algorithms.nn import Model, Linear, Activation, CrossEntropyLoss
+from nlp.word2vec import tokenize, generate_vocab, generate_cbow_batch_data, plot_embeddings
 
 with open(f'./data/shakespeare.txt') as f:
   text = f.read()

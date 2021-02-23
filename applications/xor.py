@@ -1,4 +1,4 @@
-from nn import Model, Linear, Activation, MSELoss
+from algorithms.nn import Model, Linear, Activation, MSELoss
 import numpy as np
 
 X = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
